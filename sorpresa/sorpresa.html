@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para ti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     CONFIGURACIÓN DE ESTILOS Y COLORES
+     ============================================================ */
+
+  :root{
+    --bg: #15100c;
+    --gold: #c6a15b;
+    --gold-soft: #8a7340;
+    --gold-bright: #e3c583;
+    --cream: #f3ead9;
+    --muted: #a6987f;
+    --line: rgba(198,161,91,0.28);
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    background-color: #050302;
+    background-image: radial-gradient(circle at 50% 30%, #3d2b1f 0%, #1e130a 50%, #050302 100%);
+    background-attachment: fixed;
+    color: var(--cream);
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  h1, h2, .serif{
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  ::selection{ background: var(--gold-soft); color: var(--bg); }
+
+  a{ color: var(--gold); }
+
+  /* ---------- fondo con partículas doradas más grandes ---------- */
+  .particles{
+    position: fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;
+  }
+  .particles span{
+    position:absolute; bottom:-15px; width:6px; height:6px; border-radius:50%;
+    background: var(--gold-bright); opacity:0.6;
+    box-shadow: 0 0 10px var(--gold-bright);
+    animation: float-up linear infinite;
+  }
+  @keyframes float-up{
+    0%{ transform: translateY(0) translateX(0) scale(0.8); opacity:0; }
+    10%{ opacity:0.8; }
+    90%{ opacity:0.6; }
+    100%{ transform: translateY(-110vh) translateX(var(--drift, 30px)) scale(1.2); opacity:0; }
+  }
+
+  /* ============================================================
+     MÚSICA DE FONDO - ESTILOS DEL BOTÓN
+     ============================================================ */
+  .music-control {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 100;
+    background: rgba(26, 22, 17, 0.85);
+    border: 1px solid var(--gold);
+    border-radius: 30px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  }
+  .music-control:hover {
+    background: var(--gold-soft);
+    color: #fff;
+  }
+  .music-btn-text {
+    font-size: 12px;
+    color: var(--gold-bright);
+    letter-spacing: 0.05em;
+  }
+
+  /* ============================================================
+     PANTALLA 1 — SOBRE
+     ============================================================ */
+  #cover{
+    position: fixed; inset:0; z-index: 50;
+    display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(circle at 50% 35%, #352317 0%, #080503 85%);
+    transition: opacity 1s ease, visibility 1s ease;
+  }
+  #cover.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+
+  .envelope-wrap{
+    text-align:center;
+    cursor:pointer;
+    user-select:none;
+  }
+
+  .envelope{
+    position:relative;
+    width: 220px; height: 150px;
+    margin: 0 auto 34px;
+  }
+  .env-body{
+    position:absolute; inset:0;
+    background: linear-gradient(160deg, #221c14, #171310);
+    border: 1px solid var(--line);
+  }
+  .env-flap{
+    position:absolute; top:0; left:0; width:100%; height:76px;
+    background: linear-gradient(160deg, #2a2318, #1c170f);
+    border: 1px solid var(--line);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transform-origin: top center;
+    transition: transform 1.1s cubic-bezier(.6,.1,.2,1);
+  }
+  .envelope-wrap.open .env-flap{ transform: rotateX(180deg); }
+
+  .seal{
+    position:absolute; top: 58px; left:50%; transform: translate(-50%,-50%);
+    width: 40px; height: 40px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold-soft));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Cormorant Garamond', serif; font-size: 15px; color:#160f06;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    z-index: 3;
+    transition: opacity .4s ease, transform .4s ease;
+  }
+  .envelope-wrap.open .seal{ opacity:0; transform: translate(-50%,-50%) scale(0.4); }
+
+  .envelope-wrap p{
+    font-size: 13px; letter-spacing: 0.08em; color: var(--muted);
+    text-transform: lowercase;
+  }
+  .envelope-wrap .tap-label{ margin-top:2px; }
+  .envelope-wrap.open .tap-label{ display:none; }
+
+  /* ============================================================
+     CONTENIDO PRINCIPAL
+     ============================================================ */
+  main{ position:relative; z-index:1; }
+
+  section{
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 120px 28px;
+  }
+
+  .center{ text-align:center; }
+
+  /* --- hero --- */
+  #hero{ padding-top: 18vh; padding-bottom: 100px; }
+  #hero .eyebrow{
+    font-size: 13px; color: var(--muted); letter-spacing: 0.14em;
+    margin-bottom: 18px;
+  }
+  #hero h1{
+    font-size: clamp(38px, 8vw, 62px);
+    line-height: 1.08;
+    color: var(--gold-bright);
+  }
+  #hero h1 em{ font-style: italic; color: var(--cream); }
+  #hero .names{
+    margin-top: 26px; font-size: 20px; color: var(--muted);
+  }
+  #hero .divider{
+    width: 46px; height:1px; background: var(--gold-soft);
+    margin: 34px auto;
+  }
+  #hero .counter{
+    font-size: 15px; color: var(--muted); line-height:1.9;
+  }
+  #hero .counter b{
+    display:block; font-family:'Cormorant Garamond', serif; font-weight:500;
+    font-size: 46px; color: var(--gold);
+  }
+
+  /* --- historia / fotos --- */
+  #story h2{ font-size: 34px; color: var(--gold-bright); margin-bottom: 8px; }
+  #story .lead{ color: var(--muted); font-size: 15px; margin-bottom: 60px; max-width: 46ch; }
+
+  .memory{
+    display:grid; grid-template-columns: 130px 1fr; gap: 26px;
+    align-items:center; margin-bottom: 56px;
+  }
+  .memory:nth-child(odd){ grid-template-columns: 130px 1fr; }
+  
+  /* --- ANIMACIONES Y ESTILOS DE IMÁGENES --- */
+  .memory .frame{
+    width:130px; height:130px; 
+    border: 2px solid var(--gold);
+    border-radius: 10px;
+    background: rgba(26, 22, 17, 0.8);
+    overflow:hidden; position:relative; flex-shrink:0;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5), 0 0 12px rgba(198,161,91,0.25);
+    animation: floatImage 4s ease-in-out infinite alternate;
+    transition: all 0.4s ease;
+    cursor: pointer;
+  }
+
+  .memory:nth-child(even) .frame {
+    animation-delay: 2s;
+  }
+
+  .memory .frame:hover {
+    transform: scale(1.08) rotate(2deg);
+    box-shadow: 0 15px 30px rgba(227,197,131,0.35), 0 0 20px rgba(198,161,91,0.5);
+    border-color: var(--gold-bright);
+  }
+
+  .memory .frame img{ 
+    width:100%; height:100%; object-fit:cover; display:block; 
+    transition: transform 0.5s ease;
+  }
+
+  .memory .frame:hover img {
+    transform: scale(1.12);
+  }
+
+  @keyframes floatImage {
+    0% { transform: translateY(0px); }
+    100% { transform: translateY(-7px); }
+  }
+
+  .memory .frame .placeholder{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:6px; text-align:center; padding:8px;
+    color: var(--gold-soft); font-size:10px; letter-spacing:0.04em;
+  }
+  .memory .frame .placeholder svg{ width:20px; height:20px; opacity:0.8; }
+  .memory .text .date{ font-size:12px; color: var(--muted); letter-spacing:0.06em; margin-bottom:6px; }
+  .memory .text p{ font-size: 17px; font-family:'Cormorant Garamond', serif; font-weight:400; line-height:1.5; color: var(--cream); }
+
+  /* --- MODAL PARA EXPANDIR LA IMAGEN --- */
+  .image-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .image-modal.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .image-modal img {
+    max-width: 90vw;
+    max-height: 85vh;
+    border: 2px solid var(--gold-bright);
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(227,197,131,0.4);
+    transform: scale(0.9);
+    transition: transform 0.4s ease;
+  }
+  .image-modal.active img {
+    transform: scale(1);
+  }
+
+  /* --- carta --- */
+  #letter{
+    background: rgba(26, 22, 17, 0.85);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  #letter .mark{ font-size: 34px; color: var(--gold-soft); margin-bottom: 18px; }
+  #letter p{
+    font-family:'Cormorant Garamond', serif; font-size: 21px; line-height:1.85;
+    color: var(--cream); text-align: left;
+  }
+  #letter p + p{ margin-top: 20px; }
+  #letter .sign{ margin-top: 40px; text-align:right; color: var(--gold); font-size: 20px; }
+
+  /* --- cierre --- */
+  #closing{ padding: 140px 28px 160px; }
+  #closing .flourish{ color: var(--gold-soft); font-size: 22px; margin-bottom: 26px; }
+  #closing h2{ font-size: clamp(30px, 6vw, 44px); color: var(--gold-bright); line-height:1.25; }
+  #closing .heart{
+    margin-top: 40px; width: 18px; height: 18px; display:inline-block;
+    position:relative;
+    animation: pulse 2.6s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{ transform: scale(1); } 50%{ transform: scale(1.18); } }
+
+  footer{
+    text-align:center; padding: 40px 20px 60px; color: var(--muted); font-size: 11px; letter-spacing: 0.08em;
+  }
+
+  @media (max-width: 520px){
+    .memory{ grid-template-columns: 92px 1fr; gap: 18px; }
+    .memory .frame{ width:92px; height:92px; }
+    section{ padding: 90px 22px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div class="image-modal" id="imageModal">
+  <img src="" alt="Imagen ampliada" id="modalImg">
+</div>
+
+<audio id="bgMusic" loop preload="auto">
+  <source src="musica.mp3" type="audio/mpeg">
+</audio>
+
+<div class="music-control" id="musicBtn">
+  <span class="music-btn-text" id="musicState">🎵 Música On/Off</span>
+</div>
+
+<div id="cover">
+  <div class="envelope-wrap" id="envelopeWrap">
+    <div class="envelope">
+      <div class="env-body"></div>
+      <div class="env-flap"></div>
+      <div class="seal">❤</div>
+    </div>
+    <p class="serif" style="font-size:18px; color:var(--gold-bright); text-transform:none; letter-spacing:0.02em;" id="coverLabel">Tienes una carta</p>
+    <p class="serif" style="font-size:18px; color:var(--gold-bright); text-transform:none; letter-spacing:0.02em;" id="coverLabelSub">ATT: JHEYMBER LIMBER ORIHUELA CRUZ</p>
+    <p class="tap-label">toca para abrir</p>
+  </div>
+</div>
+
+<main>
+  <section id="hero" class="center">
+    <div class="eyebrow" id="eyebrow">HOY UN DIA MUY ESPECIAL PARA LOS DOS MI GORDITA</div>
+    <h1>Feliz <em>Aniversario</em>,<br><span id="heroName"></span> TE AMO </h1>
+    <p class="names" id="namesLine"> de tu persona favorita </p>
+    <div class="divider"></div>
+    <div class="counter">
+      <b id="dayCount">—</b>
+      días eligiéndonos, uno tras otro
+      <div id="yearsBreakdown" style="margin-top:6px;"></div>
+    </div>
+  </section>
+
+  <section id="story">
+    <h2 class="serif">Algunos momentos</h2>
+    <p class="lead">De todo lo que hemos vivido, esto es lo que no quise dejar de guardar.</p>
+
+    <div id="memoriesList"></div>
+  </section>
+
+  <section id="letter">
+    <div class="mark serif">“</div>
+    <div id="letterBody"></div>
+  </section>
+
+  <section id="closing" class="center">
+    <div class="flourish">✦</div>
+    <h2 class="serif" id="closingLine">Gracias por elegirme, todos los días.</h2>
+    <span class="heart" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.7-10-9.3C.4 8.4 2.3 5 5.7 5c2 0 3.5 1.2 4.3 2.6C10.8 6.2 12.3 5 14.3 5c3.4 0 5.3 3.4 3.7 6.7C19.5 16.3 12 21 12 21Z" fill="#c6a15b"/></svg>
+    </span>
+  </section>
+
+  <footer>
+    HECHO CON MUCHO AMOR PARA MI PRINCESA HERMOSA
+  </footer>
+</main>
+
+<script>
+/* ============================================================
+   EDITA ESTO — toda la personalización vive aquí
+   ============================================================ */
+const CONFIG = {
+  heroName: "MI AMOR ❤ ",
+  namesLine: "NAYELY GABRIELA BOLIVAR & JHEYMBER LIMBER ORIHUELA",
+  anniversaryDate: "2025-09-04",
+  coverLabel: "TIENES UNA CARTA DE AMOR",
+  memories: [
+    { photo: "foto1.jpeg", date: "El primer día",    text: "Cuando todo empezó, sin saber en qué se iba a convertir." },
+    { photo: "foto2.jpeg", date: "Ese viaje",        text: "El que no se nos olvida y del que seguimos hablando." },
+    { photo: "foto3.jpeg", date: "Un día cualquiera", text: "Porque los días comunes contigo terminan siendo los mejores." },
+  ],
+  letter: [
+    "Hoy quiero recordarte algo que a veces se nos olvida decir en el día a día: contigo todo ha sido mejor.",
+    "Gracias por tu paciencia, por tu risa, por elegirme incluso en los días difíciles. Cada año contigo se siente como el primero, pero con la calma de saber que es real.",
+    "Este es solo un gracias pequeño para un cariño enorme."
+  ],
+  letterSign: "— con todo mi cariño",
+  closingLine: "Gracias por elegirme, todos los días."
+};
+
+/* ============================================================
+   LÓGICA DEL SITIO
+   ============================================================ */
+
+document.getElementById('coverLabel').textContent = CONFIG.coverLabel;
+document.getElementById('heroName').textContent = CONFIG.heroName;
+document.getElementById('namesLine').textContent = CONFIG.namesLine;
+document.getElementById('closingLine').textContent = CONFIG.closingLine;
+
+// Carta
+const letterBody = document.getElementById('letterBody');
+CONFIG.letter.forEach(p => {
+  const el = document.createElement('p');
+  el.textContent = p;
+  letterBody.appendChild(el);
+});
+const sign = document.createElement('div');
+sign.className = 'sign serif';
+sign.textContent = CONFIG.letterSign;
+letterBody.appendChild(sign);
+
+// Modal para ampliar fotos
+const modal = document.getElementById('imageModal');
+const modalImg = document.getElementById('modalImg');
+
+modal.addEventListener('click', () => {
+  modal.classList.remove('active');
+});
+
+// Recuerdos
+const list = document.getElementById('memoriesList');
+CONFIG.memories.forEach(m => {
+  const row = document.createElement('div');
+  row.className = 'memory';
+  row.innerHTML = `
+    <div class="frame">
+      <img src="${m.photo}" alt="${m.date}">
+      <div class="placeholder" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="1"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-4 4-3-3-6 6"/></svg>
+        <span>${m.photo}</span>
+      </div>
+    </div>
+    <div class="text">
+      <div class="date">${m.date}</div>
+      <p>${m.text}</p>
+    </div>`;
+  
+  const frame = row.querySelector('.frame');
+  const img = row.querySelector('img');
+  const ph = row.querySelector('.placeholder');
+  
+  img.addEventListener('error', () => { img.style.display = 'none'; ph.style.display = 'flex'; });
+  
+  // Evento al tocar/hacer clic en la imagen
+  frame.addEventListener('click', () => {
+    if (img.style.display !== 'none') {
+      modalImg.src = m.photo;
+      modal.classList.add('active');
+    }
+  });
+
+  list.appendChild(row);
+});
+
+// Contador de Días
+function updateCounter(){
+  const start = new Date(CONFIG.anniversaryDate + 'T00:00:00');
+  const now = new Date();
+  const diffDays = Math.floor((now - start) / 86400000);
+  document.getElementById('dayCount').textContent = diffDays.toLocaleString('es-ES');
+
+  const years = Math.floor(diffDays / 365);
+  if (years >= 1){
+    document.getElementById('yearsBreakdown').textContent = `(${years} ${years === 1 ? 'año' : 'años'} y contando)`;
+  }
+}
+updateCounter();
+
+// Partículas Doradas más grandes
+const pWrap = document.getElementById('particles');
+for (let i = 0; i < 25; i++){
+  const s = document.createElement('span');
+  s.style.left = Math.random() * 100 + 'vw';
+  s.style.setProperty('--drift', (Math.random() * 60 - 30) + 'px');
+  s.style.animationDuration = (8 + Math.random() * 10) + 's';
+  s.style.animationDelay = (Math.random() * 10) + 's';
+  pWrap.appendChild(s);
+}
+
+// Reproducción de Audio
+const audio = document.getElementById('bgMusic');
+const musicBtn = document.getElementById('musicBtn');
+
+musicBtn.addEventListener('click', () => {
+  if (audio.paused) {
+    audio.play();
+  } else {
+    audio.pause();
+  }
+});
+
+// Apertura del Sobre
+const wrap = document.getElementById('envelopeWrap');
+wrap.addEventListener('click', () => {
+  if (wrap.classList.contains('open')) return;
+  wrap.classList.add('open');
+
+  audio.play().catch(() => console.log("Audio activable al interactuar"));
+
+  setTimeout(() => {
+    document.getElementById('cover').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+  }, 900);
+});
+document.body.style.overflow = 'hidden';
+</script>
+
+</body>
+</html>
